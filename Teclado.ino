@@ -20,6 +20,8 @@ void setup() {
   Serial.begin(115200); 
   randomSeed(micros());
 
+  rkbdSetup();
+
   WiFi.mode(WIFI_STA);
   WiFi.begin(STASSID, STAPSK); 
   Serial.println("\n\n=== Remote keyboard ===\n");
@@ -132,7 +134,6 @@ void mqttReceive(char* topic, byte* payload, unsigned int length) {
 #ifdef SERIAL_DEBUG_ENABLED
   Serial.println("Keyboard message:");
   printKbdMessage(message);
-  Serial.println();
 #endif  
 
  // Procesamos el mensaje

@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include "config.h"
 
 // Formatea la calidad de señal del WiFi
 String formatSignalStrength(int rssi) {

@@ -8,9 +8,25 @@ struct RkbdMessage {
   byte hmac[32];
 };
 
+// Commands
+#define RKBD_COMMAND_PRINT       0x01
+#define RKBD_COMMAND_PRINTLN     0x02
+#define RKBD_COMMAND_PRESS       0x03
+#define RKBD_COMMAND_RELEASE     0x04
+#define RKBD_COMMAND_RELEASE_ALL 0x05
+#define RKBD_COMMAND_STROKE      0x06
+
+struct RkbdCommand {
+  byte id;
+  byte data[15];
+};
+
+void rkbdSetup();
 
 void printKbdMessage(const RkbdMessage message);
+void printKbdCommand(const RkbdCommand command);
 
 void proccessMessage(const RkbdMessage message);
+void proccessCommand(const RkbdCommand command);
 
 #endif
