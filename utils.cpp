@@ -40,7 +40,7 @@ String formatSignalStrength(int rssi) {
   return signalText;
 }
 
-void printHex(byte* data, unsigned int length) {
+void printHex(const byte* data, unsigned int length) {
   for (size_t i = 0; i < length; i++) {
     if ((i > 0) && (i % 8 == 0)) {
       Serial.print(" ");

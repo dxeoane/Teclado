@@ -7,6 +7,7 @@
 #include <PubSubClient.h>
 
 #include "utils.h"
+#include "rkbd.h"
 
 #define MQTT_MAX_BUFFER_SIZE 256
 WiFiClient wifiClient;
@@ -116,8 +117,27 @@ void mqttReceive(char* topic, byte* payload, unsigned int length) {
   Serial.printf("Message arrived [%s]: ", topic);
   printHex(payload, length);
   Serial.println();
-#endif    
-  
+#endif   
+
+  if (sizeof(RkbdMessage) != length) {
+    #ifdef SERIAL_DEBUG_ENABLED
+      Serial.println("Invalid message length");
+    #endif
+    return;
+  }
+
+  RkbdMessage message;
+  memcpy(&message, payload, sizeof(message));
+
+#ifdef SERIAL_DEBUG_ENABLED
+  Serial.println("Keyboard message:");
+  printKbdMessage(message);
+  Serial.println();
+#endif  
+
+ // Procesamos el mensaje
+ proccessMessage(message); 
+
 }
 
 void mqttReconnect() {

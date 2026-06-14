@@ -1,3 +1,6 @@
 /.idea
 /.vscode
 secret.h
+secret.c
+secret.cpp
+secret.txt

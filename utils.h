@@ -5,7 +5,7 @@
 String formatSignalStrength(int rssi);
 
 // Imprime una cadena de bytes
-void printHex(byte* data, unsigned int length);
+void printHex(const byte* data, unsigned int length);
 
 
 #endif
