@@ -5,18 +5,37 @@
 #include "USB.h"
 #include "USBHIDKeyboard.h"
 
+#include <Preferences.h>
+
 #include "config.h"
 #include "utils.h"
 #include "rkbd.h"
 #include "secret.h"
 
+#define USER_BUTTON_PIN GPIO_NUM_0
+
 USBHIDKeyboard Keyboard;
+Preferences prefs;
 
 uint64_t lastCounter = 0;
 
 void rkbdSetup() {
+  // Configuramos el botón como input
+  pinMode(USER_BUTTON_PIN, INPUT_PULLUP);
+
+  // Cargamos el ultimo contador utilizado
+  prefs.begin("rkbd", false);
+  lastCounter = prefs.getULong64("counter", 0);
+  prefs.end();
+
   Keyboard.begin();
   USB.begin();
+}
+
+void saveCounter(uint64_t counter) {
+  prefs.begin("rkbd", false);
+  prefs.putULong64("counter", counter);
+  prefs.end();
 }
 
 void printKbdMessage(const RkbdMessage message) {
@@ -158,14 +177,24 @@ void proccessMessage(const RkbdMessage message) {
 
   uint64_t counterValue = readUint64BE(message.counter);
 
-   if (counterValue <= lastCounter) {
+  if (counterValue <= lastCounter) {
+
+    bool overrideReplayCheck = (digitalRead(USER_BUTTON_PIN) == LOW);
+
+    if (!overrideReplayCheck) {
+        #ifdef SERIAL_DEBUG_ENABLED
+            Serial.println("Replay detectado");
+        #endif
+        return;
+    }
+
     #ifdef SERIAL_DEBUG_ENABLED
-      Serial.println("Replay detectado");
+        Serial.println("Replay detectado, pero la comprobación está anulada");
     #endif
-    return;
   }
 
   lastCounter = counterValue;
+  saveCounter(lastCounter);
 
   RkbdCommand command;
   aesCtrCrypt(message,(byte*)&command);
