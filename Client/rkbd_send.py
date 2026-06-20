@@ -193,7 +193,7 @@ def main():
 
     client.disconnect()
 
-    print("Mensaje enviado por MQTT")
+    print("Mensaje enviado")
 
 
 if __name__ == "__main__":
