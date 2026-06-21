@@ -5,8 +5,6 @@
 
 #define RGB_LED_PIN GPIO_NUM_48
 
-void writeColor(const LedColor color);
-
 void ledSetup() {
   if (!rmtInit(RGB_LED_PIN, RMT_TX_MODE, RMT_MEM_NUM_BLOCKS_1, 10000000)) {
     Serial.println("Led setup failed!");

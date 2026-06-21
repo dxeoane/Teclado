@@ -241,6 +241,7 @@ void proccessCommand(const RkbdCommand command) {
       Keyboard.press(command.data[0]);
       delay(20);
       Keyboard.release(command.data[0]);
+      return;
     default:
       return;   
   }
