@@ -7,6 +7,7 @@
 #include <PubSubClient.h>
 
 #include "utils.h"
+#include "led.h"
 #include "rkbd.h"
 
 #define MQTT_MAX_BUFFER_SIZE 256
@@ -20,16 +21,20 @@ void setup() {
   Serial.begin(115200); 
   randomSeed(micros());
 
+  ledSetup();
+  delay(1000);
+
   rkbdSetup();
 
+  ledOn(RED);
   WiFi.mode(WIFI_STA);
   WiFi.begin(STASSID, STAPSK); 
   Serial.println("\n\n=== Remote keyboard ===\n");
   Serial.printf("MAC: %s\n", WiFi.macAddress().c_str()); 
   Serial.printf("Red: %s\n", STASSID); 
-  Serial.print("Conectando ...") ;
+  Serial.print("Conectando ...") ;  
   int retries = 0;
-  while (WiFi.status() != WL_CONNECTED && retries < 100) {
+  while (WiFi.status() != WL_CONNECTED && retries < 20) {
     Serial.print(".");
     retries++;
     delay(500);
@@ -37,6 +42,7 @@ void setup() {
   Serial.println();
 
   if (WiFi.status() == WL_CONNECTED) {  
+    ledOn(ORANGE);
     Serial.printf("IP: %s\n", WiFi.localIP().toString().c_str());  
     Serial.printf("Gateway: %s\n", WiFi.gatewayIP().toString().c_str());  
     Serial.printf("DNS: %s\n", WiFi.dnsIP().toString().c_str());  
@@ -49,6 +55,7 @@ void setup() {
     String mqttClientId = "Keyboard-";
     mqttClientId += String(random(0xffff), HEX);
     if (mqttClient.connect(mqttClientId.c_str(), MQTT_USER, MQTT_PASSWORD)) {
+        ledOff();
         Serial.printf("MQTT Server: %s\n", MQTT_SERVER);
         if (mqttClient.subscribe(MQTT_TOPIC)) {
           Serial.printf("MQTT Topic: %s\n", MQTT_TOPIC);
@@ -60,13 +67,14 @@ void setup() {
 void loop() {  
 
   checkWiFi();
-  if (WiFi.status() != WL_CONNECTED) {
+  if (WiFi.status() != WL_CONNECTED) {   
     delay(1000);
     return;
   }
 
   mqttClient.loop();
 
+  ledLoop();
 }
 
 WiFiClient checkClient;
@@ -79,15 +87,19 @@ void checkWiFi() {
   
   if (WiFi.status() == WL_CONNECTED) {
     if (checkClient.connect(WIFI_CHECK_ADDRESS, WIFI_CHECK_PORT)) {
+      ledOn(ORANGE);
       checkClient.stop();    
-      if (!mqttClient.connected()) {
+      if (!mqttClient.connected()) {        
         mqttReconnect();
+      } else {
+        ledOff();
       }
       return;
     }   
     checkClient.stop();
   }
   
+  ledOn(RED);
   Serial.println("No hay conexion WiFi!");   
   WiFi.disconnect();  
 
@@ -95,12 +107,14 @@ void checkWiFi() {
   WiFi.begin(STASSID, STAPSK);  
   int retries = 0;
   while (WiFi.status() != WL_CONNECTED && retries < 20) {
-    delay(500);
+    ledLoop();    
     Serial.print(".");
+    delay(500);
     retries++;
   }
 
   if (WiFi.status() == WL_CONNECTED) {
+    ledOn(ORANGE);
     Serial.println("\nConexion WiFi restablecida.");
     Serial.printf("IP: %s\n", WiFi.localIP().toString().c_str());
   } else {
@@ -143,6 +157,7 @@ void mqttReceive(char* topic, byte* payload, unsigned int length) {
 
 void mqttReconnect() {
   if (!mqttClient.connected()) {
+    ledOn(ORANGE);
     Serial.println("Volviendo a conectar con el servidor MQTT ...");
     String mqttClientId = "Keyboard-";
     mqttClientId += String(random(0xffff), HEX);
@@ -150,6 +165,7 @@ void mqttReconnect() {
         Serial.printf("MQTT Server: %s\n", MQTT_SERVER);
         if (mqttClient.subscribe(MQTT_TOPIC)) {
           Serial.printf("MQTT Topic: %s\n", MQTT_TOPIC);
+          ledOff();
         }
     } else {
       Serial.println("Error al conectar con el servidor MQTT");

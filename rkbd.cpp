@@ -11,6 +11,7 @@
 #include "utils.h"
 #include "rkbd.h"
 #include "secret.h"
+#include "led.h"
 
 #define USER_BUTTON_PIN GPIO_NUM_0
 
@@ -212,6 +213,11 @@ void proccessCommand(const RkbdCommand command) {
 
   char buffer[16];
   memset(buffer, 0, 16);
+
+  // Hacemos un leve parpapdeo en el led para indicar actividad
+  ledOn(GREEN);
+  delay(10);
+  ledOff();
 
   switch (command.id) {
     case RKBD_COMMAND_PRINT:
