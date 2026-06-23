@@ -9,12 +9,13 @@ struct RkbdMessage {
 };
 
 // Commands
-#define RKBD_COMMAND_PRINT       0x01
-#define RKBD_COMMAND_PRINTLN     0x02
-#define RKBD_COMMAND_PRESS       0x03
-#define RKBD_COMMAND_RELEASE     0x04
-#define RKBD_COMMAND_RELEASE_ALL 0x05
-#define RKBD_COMMAND_HOTKEY      0x0
+#define RKBD_COMMAND_PRINT         0x01
+#define RKBD_COMMAND_PRINTLN       0x02
+#define RKBD_COMMAND_PRESS         0x03
+#define RKBD_COMMAND_RELEASE       0x04
+#define RKBD_COMMAND_RELEASE_ALL   0x05
+#define RKBD_COMMAND_HOTKEY        0x06
+#define RKBD_COMMAND_WAKE_ON_LAN   0x07
 
 struct RkbdCommand {
   byte id;

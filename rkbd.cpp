@@ -12,6 +12,7 @@
 #include "rkbd.h"
 #include "secret.h"
 #include "led.h"
+#include "wol.h"
 
 #define USER_BUTTON_PIN GPIO_NUM_0
 
@@ -78,6 +79,9 @@ void printKbdCommand(const RkbdCommand command) {
        break;   
     case RKBD_COMMAND_HOTKEY:
        Serial.println("Command: RKBD_COMMAND_HOTKEY");
+       break;     
+    case RKBD_COMMAND_WAKE_ON_LAN:
+       Serial.println("Command: RKBD_COMMAND_WAKE_ON_LAN");
        break;     
     default:
       Serial.printf("Command: NOT IMPLEMENTED (%d)\n", command.id);   
@@ -244,7 +248,10 @@ void proccessCommand(const RkbdCommand command) {
       }
       delay(50);
       Keyboard.releaseAll();
-      return;  
+      return; 
+    case RKBD_COMMAND_WAKE_ON_LAN:
+      sendWakeOnLan(command.data);
+      return;   
     default:
       return;   
   }

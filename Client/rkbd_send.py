@@ -32,7 +32,8 @@ COMMANDS = {
     "release_all": 0x05,
     "release-all": 0x05,
     "releaseall": 0x05,
-    "hotkey": 0x06
+    "hotkey": 0x06,
+    "wake_on_lan": 0x07,
 }
 
 
@@ -179,12 +180,12 @@ def parse_command(command_name: str) -> int:
     except ValueError as exc:
         raise ValueError(
             "El comando debe ser un nombre valido "
-            "(print, println, press, release, release_all, hotkey) "
+            "(print, println, press, release, release_all, hotkey, wake_on_lan) "
             "o un entero (ej: 1 o 0x01)"
         ) from exc
 
-    if not 1 <= value <= 6:
-        raise ValueError("El comando debe estar entre 1 y 6")
+    if not 1 <= value <= 7:
+        raise ValueError("El comando debe estar entre 1 y 7")
 
     return value
 
@@ -233,8 +234,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "command",
         help=(
-            "Comando: print|println|press|release|release_all|hotkey "
-            "(o 1-6 en decimal/0xNN)"
+            "Comando: print|println|press|release|release_all|hotkey|wake_on_lan "
+            "(o 1-7 en decimal/0xNN)"
         )
     )
     parser.add_argument(
