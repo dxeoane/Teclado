@@ -75,9 +75,6 @@ void printKbdCommand(const RkbdCommand command) {
        break;
     case RKBD_COMMAND_RELEASE_ALL:
        Serial.println("Command: RKBD_COMMAND_RELEASE_ALL");
-       break;
-    case RKBD_COMMAND_STROKE:
-       Serial.println("Command: RKBD_COMMAND_STROKE");
        break;   
     case RKBD_COMMAND_HOTKEY:
        Serial.println("Command: RKBD_COMMAND_HOTKEY");
@@ -239,11 +236,6 @@ void proccessCommand(const RkbdCommand command) {
       return;
     case RKBD_COMMAND_RELEASE_ALL:
       Keyboard.releaseAll();
-      return;
-    case RKBD_COMMAND_STROKE:
-      Keyboard.press(command.data[0]);
-      delay(50);
-      Keyboard.release(command.data[0]);
       return;
     case RKBD_COMMAND_HOTKEY:
       Keyboard.releaseAll();

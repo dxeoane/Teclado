@@ -14,9 +14,7 @@ struct RkbdMessage {
 #define RKBD_COMMAND_PRESS       0x03
 #define RKBD_COMMAND_RELEASE     0x04
 #define RKBD_COMMAND_RELEASE_ALL 0x05
-#define RKBD_COMMAND_STROKE      0x06
-#define RKBD_COMMAND_STROKE      0x06
-#define RKBD_COMMAND_HOTKEY      0x07
+#define RKBD_COMMAND_HOTKEY      0x0
 
 struct RkbdCommand {
   byte id;
