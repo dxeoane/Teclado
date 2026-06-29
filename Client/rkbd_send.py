@@ -294,8 +294,8 @@ def main():
 
     message = build_message(command)
 
-    print("Mensaje hex:")
-    print(message.hex().upper())
+    # print("Mensaje hex:")
+    # print(message.hex().upper())
 
     client = mqtt.Client(
         callback_api_version=mqtt.CallbackAPIVersion.VERSION2
@@ -312,8 +312,6 @@ def main():
     ).wait_for_publish()
 
     client.disconnect()
-
-    print("Mensaje enviado")
 
 
 if __name__ == "__main__":
