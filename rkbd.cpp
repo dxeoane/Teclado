@@ -3,6 +3,7 @@
 #include <mbedtls/md.h>
 
 #include "USB.h"
+#include "USBCDC.h"
 #include "USBHIDKeyboard.h"
 
 #include <Preferences.h>
@@ -16,6 +17,7 @@
 
 #define USER_BUTTON_PIN GPIO_NUM_0
 
+USBCDC USBSerial;
 USBHIDKeyboard Keyboard;
 Preferences prefs;
 
@@ -30,6 +32,11 @@ void rkbdSetup() {
   lastCounter = prefs.getULong64("counter", 0);
   prefs.end();
 
+  USB.productName(PRODUCT_NAME);
+  USB.manufacturerName(MANUFACTURER_NAME);
+  USB.serialNumber(SERIAL_NUMBER);
+
+  USBSerial.begin();
   Keyboard.begin();
   USB.begin();
 }
