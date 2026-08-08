@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 import paho.mqtt.client as mqtt
+from hid_codes import KEYS, CONSUMER_CONTROL, SYSTEM_CONTROL
 
 load_dotenv()
 
@@ -34,98 +35,16 @@ COMMANDS = {
     "releaseall": 0x05,
     "hotkey": 0x06,
     "wake_on_lan": 0x07,
-}
-
-
-KEYS = {
-    # Teclas modificadoras
-    "KEY_LEFT_CTRL": 0x80,
-    "KEY_LEFT_SHIFT": 0x81,
-    "KEY_LEFT_ALT": 0x82,
-    "KEY_LEFT_GUI": 0x83,
-    "KEY_RIGHT_CTRL": 0x84,
-    "KEY_RIGHT_SHIFT": 0x85,
-    "KEY_RIGHT_ALT": 0x86,
-    "KEY_RIGHT_GUI": 0x87,
-
-    # Usamos las teclas de la izquierda si no se especifica un lado
-    "KEY_CTRL": 0x80,
-    "KEY_SHIFT": 0x81,
-    "KEY_ALT": 0x82,
-    "KEY_GUI": 0x83,
-
-    # Teclas de navegación y sistema
-    "KEY_UP_ARROW": 0xDA,
-    "KEY_DOWN_ARROW": 0xD9,
-    "KEY_LEFT_ARROW": 0xD8,
-    "KEY_RIGHT_ARROW": 0xD7,
-    "KEY_MENU": 0xED,
-    "KEY_SPACE": 0x20,
-    "KEY_BACKSPACE": 0xB2,
-    "KEY_TAB": 0xB3,
-    "KEY_RETURN": 0xB0,
-    "KEY_ESC": 0xB1,
-    "KEY_INSERT": 0xD1,
-    "KEY_DELETE": 0xD4,
-    "KEY_PAGE_UP": 0xD3,
-    "KEY_PAGE_DOWN": 0xD6,
-    "KEY_HOME": 0xD2,
-    "KEY_END": 0xD5,
-    "KEY_NUM_LOCK": 0xDB,
-    "KEY_CAPS_LOCK": 0xC1,
-
-    # Teclas de función
-    "KEY_F1": 0xC2,
-    "KEY_F2": 0xC3,
-    "KEY_F3": 0xC4,
-    "KEY_F4": 0xC5,
-    "KEY_F5": 0xC6,
-    "KEY_F6": 0xC7,
-    "KEY_F7": 0xC8,
-    "KEY_F8": 0xC9,
-    "KEY_F9": 0xCA,
-    "KEY_F10": 0xCB,
-    "KEY_F11": 0xCC,
-    "KEY_F12": 0xCD,
-    "KEY_F13": 0xF0,
-    "KEY_F14": 0xF1,
-    "KEY_F15": 0xF2,
-    "KEY_F16": 0xF3,
-    "KEY_F17": 0xF4,
-    "KEY_F18": 0xF5,
-    "KEY_F19": 0xF6,
-    "KEY_F20": 0xF7,
-    "KEY_F21": 0xF8,
-    "KEY_F22": 0xF9,
-    "KEY_F23": 0xFA,
-    "KEY_F24": 0xFB,
-
-    "KEY_PRINT_SCREEN": 0xCE,
-    "KEY_SCROLL_LOCK": 0xCF,
-    "KEY_PAUSE": 0xD0,
-
-    # Numeric keypad
-    "KEY_KP_SLASH": 0xDC,
-    "KEY_KP_ASTERISK": 0xDD,
-    "KEY_KP_MINUS": 0xDE,
-    "KEY_KP_PLUS": 0xDF,
-    "KEY_KP_ENTER": 0xE0,
-    "KEY_KP_1": 0xE1,
-    "KEY_KP_2": 0xE2,
-    "KEY_KP_3": 0xE3,
-    "KEY_KP_4": 0xE4,
-    "KEY_KP_5": 0xE5,
-    "KEY_KP_6": 0xE6,
-    "KEY_KP_7": 0xE7,
-    "KEY_KP_8": 0xE8,
-    "KEY_KP_9": 0xE9,
-    "KEY_KP_0": 0xEA,
-    "KEY_KP_DOT": 0xEB,
+    "consumer": 0x08,
+    "system": 0x09
 }
 
 # Índices inversos para búsquedas rápidas
 _KEYS_UPPER = {k.upper(): v for k, v in KEYS.items()}
 _KEYS_NO_PREFIX = {k.replace("KEY_", "").upper(): v for k, v in KEYS.items()}
+_CONSUMER_CONTROL_CODES = {k.upper(): v for k, v in CONSUMER_CONTROL.items()}
+_SYSTEM_CONTROL_CODES = {k.upper(): v for k, v in SYSTEM_CONTROL.items()}
+
 
 def encrypt_payload(counter_bytes: bytes, random_bytes: bytes, payload: bytes) -> bytes:
     nonce = counter_bytes + random_bytes
@@ -180,12 +99,12 @@ def parse_command(command_name: str) -> int:
     except ValueError as exc:
         raise ValueError(
             "El comando debe ser un nombre valido "
-            "(print, println, press, release, release_all, hotkey, wake_on_lan) "
+            "(print, println, press, release, release_all, hotkey, wake_on_lan, consumer, system) "
             "o un entero (ej: 1 o 0x01)"
         ) from exc
 
-    if not 1 <= value <= 7:
-        raise ValueError("El comando debe estar entre 1 y 7")
+    if not 1 <= value <= 9:
+        raise ValueError("El comando debe estar entre 1 y 9")
 
     return value
 
@@ -215,6 +134,34 @@ def parse_hotkey(hotkey: str) -> bytes:
         key_bytes.append(matched_code)
 
     return bytes(key_bytes)
+
+def parse_consumer_control(control: str) -> bytes:
+    if not control or not control.strip():
+        raise ValueError("El código no puede estar vacío")
+
+    control_upper = control.strip().upper()
+
+    # Buscar en índices inversos
+    matched_code = _CONSUMER_CONTROL_CODES.get(control_upper)
+    
+    if matched_code is None:
+        raise ValueError(f"Código desconocido: '{control}'")
+
+    return matched_code.to_bytes(2, byteorder="big")
+
+def parse_system_control(control: str) -> bytes:
+    if not control or not control.strip():
+        raise ValueError("El código no puede estar vacío")
+
+    control_upper = control.strip().upper()
+
+    # Buscar en índices inversos
+    matched_code = _SYSTEM_CONTROL_CODES.get(control_upper)
+    
+    if matched_code is None:
+        raise ValueError(f"Código desconocido: '{control}'")
+
+    return bytes([matched_code])
         
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -234,8 +181,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "command",
         help=(
-            "Comando: print|println|press|release|release_all|hotkey|wake_on_lan "
-            "(o 1-7 en decimal/0xNN)"
+            "Comando: print|println|press|release|release_all|hotkey|wake_on_lan|consumer|system "
+            "(o 1-9 en decimal/0xNN)"
         )
     )
     parser.add_argument(
@@ -266,6 +213,10 @@ def build_command_bytes(command_name: str, data: str, is_hex: bool) -> bytes:
 
     if command_code == COMMANDS["hotkey"]:
         data_bytes = parse_hotkey(data)
+    elif command_code == COMMANDS["consumer"]:
+        data_bytes = parse_consumer_control(data)
+    elif command_code == COMMANDS["system"]:
+        data_bytes = parse_system_control(data)    
     elif is_hex:
         data_bytes = bytes.fromhex(data)
     else:

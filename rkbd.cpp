@@ -5,6 +5,8 @@
 #include "USB.h"
 #include "USBCDC.h"
 #include "USBHIDKeyboard.h"
+#include "USBHIDConsumerControl.h"
+#include "USBHIDSystemControl.h"
 
 #include <Preferences.h>
 
@@ -19,6 +21,8 @@
 
 USBCDC USBSerial;
 USBHIDKeyboard Keyboard;
+USBHIDConsumerControl ConsumerControl;
+USBHIDSystemControl SystemControl;
 Preferences prefs;
 
 uint64_t lastCounter = 0;
@@ -38,6 +42,8 @@ void rkbdSetup() {
 
   USBSerial.begin();
   Keyboard.begin();
+  ConsumerControl.begin();
+  SystemControl.begin();
   USB.begin();
 }
 
@@ -89,7 +95,13 @@ void printKbdCommand(const RkbdCommand command) {
        break;     
     case RKBD_COMMAND_WAKE_ON_LAN:
        Serial.println("Command: RKBD_COMMAND_WAKE_ON_LAN");
-       break;     
+       break;   
+    case RKBD_COMMAND_CONSUMER_CONTROL:
+       Serial.println("Command: RKBD_COMMAND_CONSUMER_CONTROL");
+       break;
+    case RKBD_COMMAND_SYSTEM_CONTROL:
+       Serial.println("Command: RKBD_COMMAND_SYSTEM_CONTROL");
+       break;    
     default:
       Serial.printf("Command: NOT IMPLEMENTED (%d)\n", command.id);   
   }
@@ -108,6 +120,20 @@ uint64_t readUint64BE(const byte in[8]) {
   }
 
   return value;
+}
+
+uint32_t readUint32BE(const byte in[4]) {
+    uint32_t value = 0;
+
+    for (int i = 0; i < 4; i++) {
+        value = (value << 8) | in[i];
+    }
+
+    return value;
+}
+
+uint16_t readUint16BE(const byte in[2]) {
+    return ((uint16_t)in[0] << 8) | in[1];
 }
 
 void makeNonce(const RkbdMessage message, uint8_t nonce[16]) {
@@ -258,7 +284,17 @@ void proccessCommand(const RkbdCommand command) {
       return; 
     case RKBD_COMMAND_WAKE_ON_LAN:
       sendWakeOnLan(command.data);
-      return;   
+      return; 
+    case RKBD_COMMAND_CONSUMER_CONTROL:
+      ConsumerControl.press(readUint16BE(command.data));
+      delay(50);
+      ConsumerControl.release();
+      return;
+    case RKBD_COMMAND_SYSTEM_CONTROL:
+      SystemControl.press(command.data[0]);
+      delay(50);      
+      SystemControl.release();
+      return;     
     default:
       return;   
   }
