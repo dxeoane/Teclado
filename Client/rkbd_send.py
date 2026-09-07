@@ -38,7 +38,8 @@ COMMANDS = {
     "hotkey": 0x06,
     "wake_on_lan": 0x07,
     "consumer": 0x08,
-    "system": 0x09
+    "system": 0x09,
+    "ping": 0x0A
 }
 
 # Índices inversos para búsquedas rápidas
@@ -101,12 +102,12 @@ def parse_command(command_name: str) -> int:
     except ValueError as exc:
         raise ValueError(
             "El comando debe ser un nombre valido "
-            "(print, println, press, release, release_all, hotkey, wake_on_lan, consumer, system) "
+            "(print, println, press, release, release_all, hotkey, wake_on_lan, consumer, system, ping) "
             "o un entero (ej: 1 o 0x01)"
         ) from exc
 
-    if not 1 <= value <= 9:
-        raise ValueError("El comando debe estar entre 1 y 9")
+    if not 1 <= value <= 10:
+        raise ValueError("El comando debe estar entre 1 y 10")
 
     return value
 
@@ -183,8 +184,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "command",
         help=(
-            "Comando: print|println|press|release|release_all|hotkey|wake_on_lan|consumer|system "
-            "(también acepta 1-9 en decimal/0xNN)"
+            "Comando: print|println|press|release|release_all|hotkey|wake_on_lan|consumer|system|ping "
+            "(también acepta 1-10 en decimal/0xNN)"
         )
     )
     parser.add_argument(
@@ -202,13 +203,19 @@ def parse_args() -> argparse.Namespace:
     if args.password and args.data is not None:
         parser.error("No pases 'data' como argumento si usas --password")
 
-    if not args.password and args.data is None:
-        parser.error("Falta el argumento 'data' (o usa --password)")
-
     try:
         command_code = parse_command(args.command)
     except ValueError as exc:
         parser.error(str(exc))
+
+    if command_code == COMMANDS["ping"]:
+        if args.password or args.data is not None or args.data2 is not None:
+            parser.error("ping no acepta datos ni --password")
+        args.data = ""
+        return args
+
+    if not args.password and args.data is None:
+        parser.error("Falta el argumento 'data' (o usa --password)")
 
     if command_code == COMMANDS["wake_on_lan"]:
         if args.data is None or args.data2 is None:
@@ -236,7 +243,11 @@ def build_command_bytes(
     command_code = parse_command(command_name)
     command_byte = bytes([command_code])
 
-    if command_code == COMMANDS["hotkey"]:
+    if command_code == COMMANDS["ping"]:
+        if data or data2 is not None:
+            raise ValueError("ping no acepta datos")
+        data_bytes = b""
+    elif command_code == COMMANDS["hotkey"]:
         data_bytes = parse_hotkey(data)
     elif command_code == COMMANDS["consumer"]:
         data_bytes = parse_consumer_control(data)

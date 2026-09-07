@@ -39,3 +39,14 @@ Para que el script funcione correctamente, define estas variables (por ejemplo, 
 ```bash
 python rkbd_send.py wake_on_lan 192.168.10.255 001122334455
 ```
+
+## Uso de ping
+
+```bash
+python rkbd_send.py ping
+```
+
+También acepta `10` o `0x0A`. La orden se cifra y autentica como las demás.
+Tras validarla, el dispositivo publica `PONG AA:BB:CC:DD:EE:FF` con su MAC WiFi
+en el mismo `MQTT_TOPIC`, como texto plano y sin retención. El cliente solo
+envía la orden; para ver la respuesta hay que estar suscrito al topic.
