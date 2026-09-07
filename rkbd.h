@@ -18,6 +18,7 @@ struct RkbdMessage {
 #define RKBD_COMMAND_WAKE_ON_LAN       0x07
 #define RKBD_COMMAND_CONSUMER_CONTROL  0x08
 #define RKBD_COMMAND_SYSTEM_CONTROL    0x09
+#define RKBD_COMMAND_PING              0x0A
 
 struct RkbdCommand {
   byte id;
@@ -29,7 +30,8 @@ void rkbdSetup();
 void printKbdMessage(const RkbdMessage message);
 void printKbdCommand(const RkbdCommand command);
 
-void proccessMessage(const RkbdMessage message);
+// Devuelve true solo cuando se ha aceptado un PING autenticado.
+bool proccessMessage(const RkbdMessage message);
 void proccessCommand(const RkbdCommand command);
 
 #endif

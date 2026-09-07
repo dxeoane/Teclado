@@ -100,8 +100,11 @@ void printKbdCommand(const RkbdCommand command) {
        Serial.println("Command: RKBD_COMMAND_CONSUMER_CONTROL");
        break;
     case RKBD_COMMAND_SYSTEM_CONTROL:
-       Serial.println("Command: RKBD_COMMAND_SYSTEM_CONTROL");
-       break;    
+      Serial.println("Command: RKBD_COMMAND_SYSTEM_CONTROL");
+      break;
+    case RKBD_COMMAND_PING:
+      Serial.println("Command: RKBD_COMMAND_PING");
+      break;
     default:
       Serial.printf("Command: NOT IMPLEMENTED (%d)\n", command.id);   
   }
@@ -200,7 +203,7 @@ bool constantTimeEqual(const byte *a, const byte *b, size_t len) {
   return diff == 0;
 }
 
-void proccessMessage(const RkbdMessage message) {
+bool proccessMessage(const RkbdMessage message) {
 
   byte expectedHmac[32];
 
@@ -210,7 +213,7 @@ void proccessMessage(const RkbdMessage message) {
     #ifdef SERIAL_DEBUG_ENABLED
       Serial.println("HMAC invalido");
     #endif
-    return;
+    return false;
   }
 
   uint64_t counterValue = readUint64BE(message.counter);
@@ -223,7 +226,7 @@ void proccessMessage(const RkbdMessage message) {
         #ifdef SERIAL_DEBUG_ENABLED
             Serial.println("Replay detectado");
         #endif
-        return;
+        return false;
     }
 
     #ifdef SERIAL_DEBUG_ENABLED
@@ -243,6 +246,7 @@ void proccessMessage(const RkbdMessage message) {
   #endif
 
   proccessCommand(command);
+  return command.id == RKBD_COMMAND_PING;
 
 }
 
@@ -273,6 +277,8 @@ void proccessCommand(const RkbdCommand command) {
       return;
     case RKBD_COMMAND_RELEASE_ALL:
       Keyboard.releaseAll();
+      return;
+    case RKBD_COMMAND_PING:
       return;
     case RKBD_COMMAND_HOTKEY:
       Keyboard.releaseAll();

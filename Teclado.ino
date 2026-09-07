@@ -88,7 +88,7 @@ void checkWiFi() {
   lastWifiCheckMillis = now;
   
   if (WiFi.status() == WL_CONNECTED) {
-    if (checkClient.connect(WIFI_CHECK_ADDRESS, WIFI_CHECK_PORT)) {
+    if (checkClient.connect(MQTT_SERVER, MQTT_PORT)) {
       ledOn(ORANGE);
       checkClient.stop();    
       if (!mqttClient.connected()) {        
@@ -153,7 +153,10 @@ void mqttReceive(char* topic, byte* payload, unsigned int length) {
 #endif  
 
  // Procesamos el mensaje
- proccessMessage(message); 
+ if (proccessMessage(message)) {
+   String response = "PONG " + WiFi.macAddress();
+   mqttClient.publish(MQTT_TOPIC, response.c_str(), false);
+ }
 
 }
 
