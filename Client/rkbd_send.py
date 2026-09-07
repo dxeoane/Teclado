@@ -184,7 +184,7 @@ def parse_args() -> argparse.Namespace:
         "command",
         help=(
             "Comando: print|println|press|release|release_all|hotkey|wake_on_lan|consumer|system "
-            "(wake_on_lan usa IP de broadcast y MAC separadas; también acepta 1-9 en decimal/0xNN)"
+            "(también acepta 1-9 en decimal/0xNN)"
         )
     )
     parser.add_argument(
