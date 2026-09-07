@@ -31,3 +31,11 @@ Para que el script funcione correctamente, define estas variables (por ejemplo, 
 - `MQTT_PASSWORD`
 - `AES_KEY` (hex)
 - `HMAC_KEY` (hex)
+
+## Uso de wake_on_lan
+
+`wake_on_lan` ahora recibe la IP de broadcast y la MAC por separado:
+
+```bash
+python rkbd_send.py --hex wake_on_lan 192.168.10.255 001122334455
+```
