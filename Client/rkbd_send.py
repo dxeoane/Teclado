@@ -8,6 +8,8 @@ import struct
 import time
 import argparse
 import getpass
+import ipaddress
+from typing import Optional
 from dotenv import load_dotenv
 
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
@@ -182,13 +184,18 @@ def parse_args() -> argparse.Namespace:
         "command",
         help=(
             "Comando: print|println|press|release|release_all|hotkey|wake_on_lan|consumer|system "
-            "(o 1-9 en decimal/0xNN)"
+            "(wake_on_lan usa IP de broadcast y MAC separadas; también acepta 1-9 en decimal/0xNN)"
         )
     )
     parser.add_argument(
         "data",
         nargs="?",
-        help="Parámetros del comando (texto normal o hex si se usa --hex)"
+        help="Parámetro principal del comando (texto normal o hex si se usa --hex)"
+    )
+    parser.add_argument(
+        "data2",
+        nargs="?",
+        help="Segundo parámetro para wake_on_lan (MAC en hex)"
     )
     args = parser.parse_args()
 
@@ -197,6 +204,14 @@ def parse_args() -> argparse.Namespace:
 
     if not args.password and args.data is None:
         parser.error("Falta el argumento 'data' (o usa --password)")
+
+    if args.command.lower() == "wake_on_lan":
+        if args.data is None or args.data2 is None:
+            parser.error(
+                "wake_on_lan requiere dos argumentos: IP de broadcast y MAC"
+            )
+    elif args.data2 is not None:
+        parser.error("Este comando solo acepta un argumento de datos")
 
     return args
 
@@ -207,7 +222,12 @@ def read_data_from_stdin() -> str:
     return sys.stdin.read().rstrip("\r\n")
 
 
-def build_command_bytes(command_name: str, data: str, is_hex: bool) -> bytes:
+def build_command_bytes(
+    command_name: str,
+    data: str,
+    is_hex: bool,
+    data2: Optional[str] = None,
+) -> bytes:
     command_code = parse_command(command_name)
     command_byte = bytes([command_code])
 
@@ -217,6 +237,27 @@ def build_command_bytes(command_name: str, data: str, is_hex: bool) -> bytes:
         data_bytes = parse_consumer_control(data)
     elif command_code == COMMANDS["system"]:
         data_bytes = parse_system_control(data)    
+    elif command_code == COMMANDS["wake_on_lan"]:
+        try:
+            broadcast_address = ipaddress.IPv4Address(data)
+        except ipaddress.AddressValueError as exc:
+            raise ValueError(f"IP de broadcast inválida: '{data}'") from exc
+
+        if data2 is None:
+            raise ValueError("wake_on_lan requiere una MAC")
+
+        mac_hex = data2.replace(":", "").replace("-", "").strip()
+        if len(mac_hex) != 12:
+            raise ValueError(
+                "La MAC debe tener 12 caracteres hexadecimales"
+            )
+
+        try:
+            mac_bytes = bytes.fromhex(mac_hex)
+        except ValueError as exc:
+            raise ValueError(f"MAC inválida: '{data2}'") from exc
+
+        data_bytes = broadcast_address.packed + mac_bytes
     elif is_hex:
         data_bytes = bytes.fromhex(data)
     else:
@@ -237,7 +278,8 @@ def main():
         command = build_command_bytes(
             args.command,
             data,
-            args.hex
+            args.hex,
+            args.data2
         )
     except ValueError as exc:
         print(f"Error: {exc}")

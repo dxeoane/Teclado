@@ -32,12 +32,10 @@ Para que el script funcione correctamente, define estas variables (por ejemplo, 
 - `AES_KEY` (hex)
 - `HMAC_KEY` (hex)
 
-## Wake-on-LAN
+## Uso de wake_on_lan
 
-Los datos del comando contienen primero los 4 bytes de la dirección IPv4 de
-broadcast y después los 6 bytes de la MAC del equipo que se quiere despertar.
-Por ejemplo, para broadcast `192.168.1.255` y MAC `00:11:22:33:44:55`:
+`wake_on_lan` ahora recibe la IP de broadcast y la MAC por separado:
 
 ```bash
-python rkbd_send.py --hex wake_on_lan c0a801ff001122334455
+python rkbd_send.py --hex wake_on_lan 192.168.10.255 001122334455
 ```
