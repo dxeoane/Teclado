@@ -1,13 +1,15 @@
 #include <WiFiUdp.h>
 
-#include "secret.h"
 #include "wol.h"
 
 WiFiUDP udp;
 
 #define WAKE_ON_LAN_PORT 9
 
-void sendWakeOnLan(const byte* mac) {
+void sendWakeOnLan(const byte* data) {
+
+  IPAddress broadcastAddress(data[0], data[1], data[2], data[3]);
+  const byte* mac = data + 4;
 
   byte packet[102];
 
@@ -21,8 +23,8 @@ void sendWakeOnLan(const byte* mac) {
     memcpy(&packet[i * 6], mac, 6);
   }                 
 
-  udp.beginPacket(WIFI_BROADCAST_ADDRESS, WAKE_ON_LAN_PORT);
+  udp.beginPacket(broadcastAddress, WAKE_ON_LAN_PORT);
   udp.write(packet, sizeof(packet));
   udp.endPacket();
 
-}  
+}
