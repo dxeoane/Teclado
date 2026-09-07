@@ -41,6 +41,10 @@ void setup() {
   }
   Serial.println();
 
+  // Configuramos el cliente MQTT 
+  mqttClient.setServer(MQTT_SERVER, MQTT_PORT);
+  mqttClient.setCallback(mqttReceive);
+
   if (WiFi.status() == WL_CONNECTED) {  
     ledOn(ORANGE);
     Serial.printf("IP: %s\n", WiFi.localIP().toString().c_str());  
@@ -49,9 +53,7 @@ void setup() {
     int rssi = WiFi.RSSI();  
     Serial.printf("RSSI: %s\n", formatSignalStrength(rssi).c_str());   
 
-    Serial.println("Conectando con el servidor MQTT ...");
-    mqttClient.setServer(MQTT_SERVER, MQTT_PORT);
-    mqttClient.setCallback(mqttReceive);
+    Serial.println("Conectando con el servidor MQTT ...");    
     String mqttClientId = "Keyboard-";
     mqttClientId += String(random(0xffff), HEX);
     if (mqttClient.connect(mqttClientId.c_str(), MQTT_USER, MQTT_PASSWORD)) {
