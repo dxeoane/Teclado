@@ -37,5 +37,5 @@ Para que el script funcione correctamente, define estas variables (por ejemplo, 
 `wake_on_lan` ahora recibe la IP de broadcast y la MAC por separado:
 
 ```bash
-python rkbd_send.py --hex wake_on_lan 192.168.10.255 001122334455
+python rkbd_send.py wake_on_lan 192.168.10.255 001122334455
 ```

@@ -205,7 +205,12 @@ def parse_args() -> argparse.Namespace:
     if not args.password and args.data is None:
         parser.error("Falta el argumento 'data' (o usa --password)")
 
-    if args.command.lower() == "wake_on_lan":
+    try:
+        command_code = parse_command(args.command)
+    except ValueError as exc:
+        parser.error(str(exc))
+
+    if command_code == COMMANDS["wake_on_lan"]:
         if args.data is None or args.data2 is None:
             parser.error(
                 "wake_on_lan requiere dos argumentos: IP de broadcast y MAC"
@@ -256,6 +261,9 @@ def build_command_bytes(
             mac_bytes = bytes.fromhex(mac_hex)
         except ValueError as exc:
             raise ValueError(f"MAC inválida: '{data2}'") from exc
+
+        if len(mac_bytes) != 6:
+            raise ValueError("La MAC debe contener exactamente 6 bytes")
 
         data_bytes = broadcast_address.packed + mac_bytes
     elif is_hex:
