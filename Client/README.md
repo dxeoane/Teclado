@@ -46,6 +46,10 @@ python rkbd_send.py wake_on_lan 192.168.10.255 001122334455
 python rkbd_send.py ping
 ```
 
+```bash
+mosquitto_sub -h mqtt.vagalume.es -u Keyboard -P xxxxxxx -t KbdOficina -p 61883  | grep -a --line-buffered '^PONG'
+```
+
 También acepta `10` o `0x0A`. La orden se cifra y autentica como las demás.
 Tras validarla, el dispositivo publica `PONG AA:BB:CC:DD:EE:FF` con su MAC WiFi
 en el mismo `MQTT_TOPIC`, como texto plano y sin retención. El cliente solo
